@@ -1,0 +1,326 @@
+import React, { useState } from 'react';
+import { Laptop, Smartphone, Battery, Cpu, Home, RefreshCw, Trophy } from 'lucide-react';
+
+const SortingGame = ({ setScore }) => {
+  const items = [
+    { id: 1, name: 'Celular Antigo', type: 'phones', icon: <Smartphone className="w-8 h-8" /> },
+    { id: 2, name: 'Notebook Quebrado', type: 'computers', icon: <Laptop className="w-8 h-8" /> },
+    { id: 3, name: 'Pilhas Usadas', type: 'batteries', icon: <Battery className="w-8 h-8" /> },
+    { id: 4, name: 'Processador', type: 'components', icon: <Cpu className="w-8 h-8" /> }
+  ];
+
+  const bins = [
+    { type: 'phones', label: 'Celulares', color: 'bg-blue-500' },
+    { type: 'computers', label: 'Computadores', color: 'bg-green-500' },
+    { type: 'batteries', label: 'Pilhas e Baterias', color: 'bg-red-500' },
+    { type: 'components', label: 'Componentes', color: 'bg-purple-500' }
+  ];
+
+  const [message, setMessage] = useState('');
+
+  const handleDrop = (itemType, binType) => {
+    if (itemType === binType) {
+      setScore(prev => prev + 10);
+      setMessage('Correto! Este eletrônico precisa de descarte especial! +10 pontos');
+    } else {
+      setMessage('Ops! Tente novamente. Cada tipo de eletrônico tem seu descarte específico.');
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Descarte Correto de Eletrônicos</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h3 className="font-bold mb-2">Itens para Descartar:</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {items.map(item => (
+              <div 
+                key={item.id}
+                className="bg-white p-4 rounded shadow-md cursor-pointer flex flex-col items-center"
+                draggable
+                onDragEnd={() => handleDrop(item.type, item.type)}
+              >
+                {item.icon}
+                <span className="mt-2">{item.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h3 className="font-bold mb-2">Pontos de Coleta:</h3>
+          <div className="grid grid-cols-2 gap-2">
+            {bins.map(bin => (
+              <div 
+                key={bin.type}
+                className={`${bin.color} p-4 rounded text-white text-center`}
+              >
+                {bin.label}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+      <p className="mt-4 text-center font-bold">{message}</p>
+    </div>
+  );
+};
+
+const QuizGame = ({ setScore }) => {
+  const [currentQuestion, setCurrentQuestion] = useState(0);
+  const questions = [
+    {
+      question: 'Por que não devemos jogar eletrônicos no lixo comum?',
+      options: [
+        'Podem contaminar o solo e a água',
+        'Ocupam muito espaço',
+        'São muito pesados',
+        'São coloridos demais'
+      ],
+      correct: 0
+    },
+    {
+      question: 'O que podemos fazer com um celular antigo?',
+      options: [
+        'Jogar no lixo comum',
+        'Queimar',
+        'Levar a um ponto de coleta',
+        'Enterrar no jardim'
+      ],
+      correct: 2
+    }
+  ];
+
+  const handleAnswer = (index) => {
+    if (index === questions[currentQuestion].correct) {
+      setScore(prev => prev + 10);
+      setCurrentQuestion(prev => Math.min(prev + 1, questions.length - 1));
+    }
+  };
+
+  return (
+    <div className="p-4 max-w-2xl mx-auto">
+      <h2 className="text-2xl font-bold mb-4">Quiz do Lixo Eletrônico</h2>
+      {currentQuestion < questions.length ? (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <p className="text-lg mb-4">{questions[currentQuestion].question}</p>
+          <div className="grid gap-2">
+            {questions[currentQuestion].options.map((option, index) => (
+              <button
+                key={index}
+                onClick={() => handleAnswer(index)}
+                className="bg-blue-100 p-3 rounded text-left hover:bg-blue-200 transition-colors"
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center bg-green-100 p-6 rounded-lg">
+          <h3 className="text-xl font-bold">Parabéns!</h3>
+          <p>Você completou o quiz sobre lixo eletrônico!</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const MemoryGame = ({ setScore }) => {
+  const initialCards = [
+    { id: 1, content: '📱', label: 'Celular' },
+    { id: 2, content: '💻', label: 'Notebook' },
+    { id: 3, content: '🔋', label: 'Bateria' },
+    { id: 4, content: '🖨️', label: 'Impressora' }
+  ].flatMap(card => [
+    { ...card, uniqueId: `${card.id}-1` },
+    { ...card, uniqueId: `${card.id}-2` }
+  ]);
+
+  const [cards] = useState(initialCards);
+  const [flipped, setFlipped] = useState([]);
+  const [matched, setMatched] = useState([]);
+
+  const handleCardClick = (uniqueId) => {
+    if (flipped.length < 2 && !flipped.includes(uniqueId)) {
+      setFlipped(prev => [...prev, uniqueId]);
+      
+      if (flipped.length === 1) {
+        const firstCard = cards.find(card => card.uniqueId === flipped[0]);
+        const secondCard = cards.find(card => card.uniqueId === uniqueId);
+        
+        if (firstCard.id === secondCard.id) {
+          setMatched(prev => [...prev, firstCard.id]);
+          setScore(prev => prev + 20);
+        }
+        
+        setTimeout(() => setFlipped([]), 1000);
+      }
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Jogo da Memória - Eletrônicos</h2>
+      <div className="grid grid-cols-4 gap-2">
+        {cards.map(card => (
+          <div
+            key={card.uniqueId}
+            onClick={() => handleCardClick(card.uniqueId)}
+            className={`aspect-square flex items-center justify-center text-3xl cursor-pointer rounded-lg transition-all transform ${
+              flipped.includes(card.uniqueId) || matched.includes(card.id)
+                ? 'bg-green-200 rotate-0'
+                : 'bg-blue-500 rotate-180'
+            }`}
+          >
+            {flipped.includes(card.uniqueId) || matched.includes(card.id)
+              ? card.content
+              : '❓'}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const CycleGame = ({ setScore }) => {
+  const steps = [
+    { id: 1, text: 'Coleta do Eletrônico', icon: '📱' },
+    { id: 2, text: 'Desmontagem', icon: '🔧' },
+    { id: 3, text: 'Separação de Materiais', icon: '♻️' },
+    { id: 4, text: 'Processamento', icon: '⚙️' },
+    { id: 5, text: 'Novos Produtos', icon: '✨' }
+  ];
+
+  const [arranged, setArranged] = useState([]);
+
+  const handleStepClick = (step) => {
+    if (!arranged.includes(step.id)) {
+      setArranged(prev => [...prev, step.id]);
+      if (arranged.length === steps.length - 1) {
+        setScore(prev => prev + 30);
+      }
+    }
+  };
+
+  return (
+    <div className="p-4">
+      <h2 className="text-2xl font-bold mb-4">Ciclo de Reciclagem Eletrônica</h2>
+      <div className="grid gap-4">
+        <div className="bg-gray-100 p-4 rounded-lg">
+          <h3 className="font-bold mb-2">Monte o Ciclo:</h3>
+          <div className="flex flex-wrap gap-2">
+            {steps
+              .filter(step => !arranged.includes(step.id))
+              .map(step => (
+                <button
+                  key={step.id}
+                  onClick={() => handleStepClick(step)}
+                  className="bg-white p-3 rounded shadow-sm hover:shadow-md transition-shadow"
+                >
+                  {step.icon} {step.text}
+                </button>
+              ))}
+          </div>
+        </div>
+        <div className="bg-green-100 p-4 rounded-lg">
+          <h3 className="font-bold mb-2">Ciclo Montado:</h3>
+          <div className="flex flex-col gap-2">
+            {arranged.map(id => {
+              const step = steps.find(s => s.id === id);
+              return (
+                <div key={id} className="bg-white p-3 rounded flex items-center">
+                  {step.icon} {step.text}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const HomeScreen = ({ setCurrentScreen, score }) => (
+  <div className="p-4">
+    <h1 className="text-4xl font-bold text-center mb-8 text-purple-600">
+      🔌 Reciclagem de Eletrônicos 💻
+    </h1>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto">
+      <button
+        onClick={() => setCurrentScreen('sorting')}
+        className="bg-blue-500 text-white p-6 rounded-lg hover:bg-blue-600 transition-colors flex flex-col items-center gap-2"
+      >
+        <Laptop size={32} />
+        <span>Descarte Correto</span>
+      </button>
+      <button
+        onClick={() => setCurrentScreen('quiz')}
+        className="bg-green-500 text-white p-6 rounded-lg hover:bg-green-600 transition-colors flex flex-col items-center gap-2"
+      >
+        <Cpu size={32} />
+        <span>Quiz Eletrônico</span>
+      </button>
+      <button
+        onClick={() => setCurrentScreen('memory')}
+        className="bg-yellow-500 text-white p-6 rounded-lg hover:bg-yellow-600 transition-colors flex flex-col items-center gap-2"
+      >
+        <Smartphone size={32} />
+        <span>Jogo da Memória</span>
+      </button>
+      <button
+        onClick={() => setCurrentScreen('cycle')}
+        className="bg-purple-500 text-white p-6 rounded-lg hover:bg-purple-600 transition-colors flex flex-col items-center gap-2"
+      >
+        <RefreshCw size={32} />
+        <span>Ciclo de Reciclagem</span>
+      </button>
+    </div>
+    <div className="mt-8 text-center">
+      <p className="text-xl">Pontuação Total: {score}</p>
+    </div>
+  </div>
+);
+
+const Navigation = ({ setCurrentScreen, score, setScore }) => (
+  <nav className="bg-purple-600 p-4">
+    <div className="flex justify-between items-center max-w-4xl mx-auto">
+      <button
+        onClick={() => setCurrentScreen('home')}
+        className="text-white hover:text-purple-200 transition-colors"
+      >
+        <Home size={24} />
+      </button>
+      <div className="flex items-center gap-4">
+        <span className="text-white font-bold">Pontos: {score}</span>
+        <Trophy className="text-yellow-300" size={24} />
+      </div>
+      <button
+        onClick={() => setScore(0)}
+        className="text-white hover:text-purple-200 transition-colors"
+      >
+        <RefreshCw size={24} />
+      </button>
+    </div>
+  </nav>
+);
+
+const EwasteGames = () => {
+  const [currentScreen, setCurrentScreen] = useState('home');
+  const [score, setScore] = useState(0);
+
+  return (
+    <div className="min-h-screen bg-gray-100">
+      <Navigation setCurrentScreen={setCurrentScreen} score={score} setScore={setScore} />
+      <main className="container mx-auto py-8">
+        {currentScreen === 'home' && <HomeScreen setCurrentScreen={setCurrentScreen} score={score} />}
+        {currentScreen === 'sorting' && <SortingGame setScore={setScore} />}
+        {currentScreen === 'quiz' && <QuizGame setScore={setScore} />}
+        {currentScreen === 'memory' && <MemoryGame setScore={setScore} />}
+        {currentScreen === 'cycle' && <CycleGame setScore={setScore} />}
+      </main>
+    </div>
+  );
+};
+
+export default EwasteGames;
